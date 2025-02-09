@@ -85,7 +85,7 @@ func (u *UserConnectHandler) removeConnection(userID uint64) {
 	defer u.mutex.Unlock()
 
 	if _, exists := u.connections[userID]; exists {
-		fmt.Printf("Removing connection for user %d\n", userID)
+		fmt.Printf("Removing connection for room %d\n", userID)
 		delete(u.connections, userID)
 	}
 }
@@ -99,13 +99,13 @@ func (u *UserConnectHandler) getMessageHandler(user *User) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Printf("Error reading message for user %s: %v\n", userID, err)
+			fmt.Printf("Error reading message for room %s: %v\n", userID, err)
 			u.removeConnection(userID)
 			break
 		}
 
 		// 클라이언트로부터 받은 메시지 처리
-		fmt.Printf("Received message from user %s: %s\n", userID, string(message))
+		fmt.Printf("Received message from room %s: %s\n", userID, string(message))
 
 		// 메시지 처리 함수 호출
 		handleMessage(user, message)
@@ -114,5 +114,6 @@ func (u *UserConnectHandler) getMessageHandler(user *User) {
 
 // handleMessage는 수신된 메시지를 처리합니다.
 func handleMessage(user *User, message []byte) {
+	//message와 user를 바탕으로 nats에 넣을 메시지를 만든다.
 	fmt.Println(string(message))
 }
