@@ -15,7 +15,7 @@ type RedisClient struct {
 	client *redis.Client
 }
 
-func NewRedisClient(cfg *config.Config) *RedisClient {
+func NewRedisClient(cfg *config.Config) (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
 		Password: cfg.RedisPassword,
@@ -25,11 +25,12 @@ func NewRedisClient(cfg *config.Config) *RedisClient {
 	_, err := client.Ping(ctx).Result()
 	if err != nil {
 		log.Fatalf("Redis 연결 실패: %v", err)
+		return nil, err
 	} else {
 		fmt.Println("Redis에 연결되었습니다.")
 	}
 
-	return &RedisClient{client: client}
+	return &RedisClient{client: client}, nil
 }
 
 // Set은 Redis에 키-값을 저장합니다.

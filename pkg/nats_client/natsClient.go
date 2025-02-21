@@ -1,4 +1,4 @@
-package nats_client
+package natsClient
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 )
 
 // natsClient 구조체 정의
-type natsClient struct {
+type NatsClient struct {
 	conn *nats.Conn
 }
 
 // newNatsClient 함수 구현
-func newNatsClient(url string) (*natsClient, error) {
+func NewNatsClient(url string) (*natsClient, error) {
 	// NATS 서버에 연결 시도
 	conn, err := nats.Connect(url)
 	if err != nil {

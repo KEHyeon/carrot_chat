@@ -1,12 +1,14 @@
 package chat_server
 
 import (
+	"carrot_chat/pkg/nats_client"
 	redisclient "carrot_chat/pkg/redis_client"
 	"carrot_chat/pkg/utils/jwtutil"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 )
 
@@ -15,14 +17,16 @@ type UserConnectHandler struct {
 	connections map[uint64]*User // 연결된 사용자 정보 관리
 	mutex       sync.Mutex       // 동시 접근을 안전하게 처리하기 위한 뮤텍스
 	redisClient *redisclient.RedisClient
+	natsClient  *natsClient.NatsClient
 }
 
-func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, redisClient *redisclient.RedisClient) *UserConnectHandler {
+func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, redisClient *redisclient.RedisClient, natsClient *natsClient.NatsClient) *UserConnectHandler {
 	return &UserConnectHandler{
 		jwtUtil:     jwtUtil,
 		redisClient: redisClient,
 		connections: make(map[uint64]*User),
 		mutex:       sync.Mutex{},
+		natsClient:  natsClient,
 	}
 }
 
@@ -67,7 +71,18 @@ func (u *UserConnectHandler) HandleWebSocket(w http.ResponseWriter, r *http.Requ
 
 	// 6. 유저를 connections 맵에 추가
 	u.addUser(user)
-
+	// 6-1. Redis에 현재 서버 정보 등록 (key = userID)
+	serverIP := "현재 서버의 IP 주소" // 환경 변수에서 가져오거나 설정 파일에서 읽어올 것
+	err = u.redisClient.Set(strconv.Itoa(int(userID)), serverIP)
+	if err != nil {
+		fmt.Printf("Redis 등록 실패: %v\n", err)
+	}
+	defer func() {
+		//todo redis에서 삭제로직
+		if err != nil {
+			fmt.Printf("Redis 삭제 실패: %v\n", err)
+		}
+	}()
 	// 7. 메시지 처리 루프 시작
 	u.getMessageHandler(user)
 }
@@ -93,25 +108,25 @@ func (u *UserConnectHandler) removeConnection(userID uint64) {
 	}
 }
 
-// getMessageHandler는 유저의 메시지를 처리하는 루프입니다.
 func (u *UserConnectHandler) getMessageHandler(user *User) {
 	conn := user.Conn
 	userID := user.GetId()
 
-	// 메시지 처리 루프
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Printf("Error reading message for room %s: %v\n", userID, err)
+			fmt.Printf("Error reading message for user %s: %v\n", userID, err)
 			u.removeConnection(userID)
 			break
 		}
 
-		// 클라이언트로부터 받은 메시지 처리
-		fmt.Printf("Received message from room %s: %s\n", userID, string(message))
+		fmt.Printf("Received message from user %s: %s\n", userID, string(message))
 
-		// 메시지 처리 함수 호출
-		handleMessage(user, message)
+		// NATS Queue에 메시지 전송
+		err = u.natsClient.Publish("chat.queue", message)
+		if err != nil {
+			fmt.Printf("Failed to publish message to NATS: %v\n", err)
+		}
 	}
 }
 

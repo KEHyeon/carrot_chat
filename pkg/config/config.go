@@ -10,6 +10,8 @@ type Config struct {
 	RedisAddr           string
 	RedisPassword       string
 	RedisDB             int
+	Port                int
+	NatsUrl             string
 }
 
 // NewConfig는 기본 설정을 반환합니다.
@@ -20,5 +22,6 @@ func NewConfig() *Config {
 		RedisAddr:           "localhost:6379",
 		RedisPassword:       "",
 		RedisDB:             0,
+		Port:                8081,
 	}
 }
