@@ -1,28 +1,26 @@
 package chat_server
 
 import (
+	"carrot_chat/pkg/config"
+	redisclient "carrot_chat/pkg/redis_client"
 	"carrot_chat/pkg/utils/jwtutil"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 // ChatServer는 WebSocket 서버와 관련된 설정과 시작 로직을 포함하는 구조체입니다.
 type ChatServer struct {
-	jwtUtil            *jwtutil.JWTUtil // JWT 유틸리티
-	chatManager        *ChatManager
+	jwtUtil            *jwtutil.JWTUtil
 	userConnectHandler *UserConnectHandler
 }
 
-// NewChatServer는 ChatServer 구조체를 초기화하고 반환합니다.
-func NewChatServer(secretKey string, tokenExpireDuration time.Duration) *ChatServer {
-	jwtUtil := jwtutil.NewJWTUtil(secretKey, tokenExpireDuration) // JWT 유틸리티 초기화
-	chatManager := NewChatManager()                               // 채팅 매니저 초기화
-	userConnectHandler := NewUserConnectHandler(jwtUtil, chatManager)
+func NewChatServer(cfg *config.Config) *ChatServer {
+	jwtUtil := jwtutil.NewJWTUtil(cfg.SecretKey, cfg.TokenExpireDuration)
+	redisClient := redisclient.NewRedisClient(cfg)
+	userConnectHandler := NewUserConnectHandler(jwtUtil, redisClient)
 
 	return &ChatServer{
 		jwtUtil:            jwtUtil,
-		chatManager:        chatManager,
 		userConnectHandler: userConnectHandler,
 	}
 }

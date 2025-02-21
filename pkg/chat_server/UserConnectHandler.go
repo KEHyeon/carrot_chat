@@ -1,6 +1,7 @@
 package chat_server
 
 import (
+	redisclient "carrot_chat/pkg/redis_client"
 	"carrot_chat/pkg/utils/jwtutil"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -10,17 +11,18 @@ import (
 )
 
 type UserConnectHandler struct {
-	jwtUtil     *jwtutil.JWTUtil // JWT 유틸리티
-	chatManager *ChatManager     // 채팅 매니저
+	jwtUtil     *jwtutil.JWTUtil // JWT 유틸리
 	connections map[uint64]*User // 연결된 사용자 정보 관리
 	mutex       sync.Mutex       // 동시 접근을 안전하게 처리하기 위한 뮤텍스
+	redisClient *redisclient.RedisClient
 }
 
-func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, chatManager *ChatManager) *UserConnectHandler {
+func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, redisClient *redisclient.RedisClient) *UserConnectHandler {
 	return &UserConnectHandler{
 		jwtUtil:     jwtUtil,
-		chatManager: chatManager,
-		connections: make(map[uint64]*User), // connections 맵 초기화
+		redisClient: redisClient,
+		connections: make(map[uint64]*User),
+		mutex:       sync.Mutex{},
 	}
 }
 
@@ -48,6 +50,7 @@ func (u *UserConnectHandler) HandleWebSocket(w http.ResponseWriter, r *http.Requ
 
 	// 3. 유저 정보 확인
 	userID := claims.UserID
+
 	fmt.Printf("User %s authenticated\n", userID)
 
 	// 4. WebSocket 연결 업그레이드

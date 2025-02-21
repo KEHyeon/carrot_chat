@@ -1,0 +1,24 @@
+package config
+
+import (
+	"time"
+)
+
+type Config struct {
+	SecretKey           string
+	TokenExpireDuration time.Duration
+	RedisAddr           string
+	RedisPassword       string
+	RedisDB             int
+}
+
+// NewConfig는 기본 설정을 반환합니다.
+func NewConfig() *Config {
+	return &Config{
+		SecretKey:           "your-secret-key",
+		TokenExpireDuration: time.Hour,
+		RedisAddr:           "localhost:6379",
+		RedisPassword:       "",
+		RedisDB:             0,
+	}
+}
