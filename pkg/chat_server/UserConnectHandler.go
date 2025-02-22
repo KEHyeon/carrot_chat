@@ -121,9 +121,7 @@ func (u *UserConnectHandler) getMessageHandler(user *User) {
 		}
 
 		fmt.Printf("Received message from user %s: %s\n", userID, len(message))
-
-		// NATS Queue에 메시지 전송
-		err = u.natsClient.PublishToQueue("chat", message)
+		err = u.handleMessage(message)
 		if err != nil {
 			fmt.Printf("Failed to publish message to NATS: %v\n", err)
 		}
@@ -131,7 +129,6 @@ func (u *UserConnectHandler) getMessageHandler(user *User) {
 }
 
 // handleMessage는 수신된 메시지를 처리합니다.
-func handleMessage(user *User, message []byte) {
-	//message와 user를 바탕으로 nats에 넣을 메시지를 만든다.
-	fmt.Println(string(message))
+func (u *UserConnectHandler) handleMessage(data []byte) error {
+	return u.natsClient.PublishToQueue("chat", data)
 }
