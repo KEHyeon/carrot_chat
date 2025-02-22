@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package chat;
+option go_package = "pkg/chat/pb;chatpb";
+// 메시지 타입 정의 (TEXT, IMAGE, VIDEO 등)
+enum MessageType {
+  TEXT = 0;
+  IMAGE = 1;
+  VIDEO = 2;
+}
+
+// 채팅 메시지 구조
+message ChatMessage {
+  uint64 user_id = 1;    // 유저 ID
+  string room_id = 2;    // 채팅방 ID
+  string content = 3;    // 메시지 내용
+  MessageType type = 4;  // 메시지 타입
+  int64 timestamp = 5;   // 전송 시간 (Unix Timestamp)
+}
+
+// 유저 접속 정보 (Redis에 저장 가능)
+message UserConnectionInfo {
+  uint64 user_id = 1;    // 유저 ID
+  string server_ip = 2;  // 유저가 접속한 서버 IP
+}

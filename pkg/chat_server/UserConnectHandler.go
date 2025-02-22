@@ -17,10 +17,10 @@ type UserConnectHandler struct {
 	connections map[uint64]*User // 연결된 사용자 정보 관리
 	mutex       sync.Mutex       // 동시 접근을 안전하게 처리하기 위한 뮤텍스
 	redisClient *redisclient.RedisClient
-	natsClient  *natsClient.NatsClient
+	natsClient  *nats_client.NatsClient
 }
 
-func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, redisClient *redisclient.RedisClient, natsClient *natsClient.NatsClient) *UserConnectHandler {
+func NewUserConnectHandler(jwtUtil *jwtutil.JWTUtil, redisClient *redisclient.RedisClient, natsClient *nats_client.NatsClient) *UserConnectHandler {
 	return &UserConnectHandler{
 		jwtUtil:     jwtUtil,
 		redisClient: redisClient,
@@ -120,10 +120,10 @@ func (u *UserConnectHandler) getMessageHandler(user *User) {
 			break
 		}
 
-		fmt.Printf("Received message from user %s: %s\n", userID, string(message))
+		fmt.Printf("Received message from user %s: %s\n", userID, len(message))
 
 		// NATS Queue에 메시지 전송
-		err = u.natsClient.Publish("chat.queue", message)
+		err = u.natsClient.PublishToQueue("chat", message)
 		if err != nil {
 			fmt.Printf("Failed to publish message to NATS: %v\n", err)
 		}

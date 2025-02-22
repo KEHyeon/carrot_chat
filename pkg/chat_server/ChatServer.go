@@ -2,8 +2,8 @@ package chat_server
 
 import (
 	"carrot_chat/pkg/config"
-	natsClient "carrot_chat/pkg/nats_client"
-	redisclient "carrot_chat/pkg/redis_client"
+	"carrot_chat/pkg/nats_client"
+	"carrot_chat/pkg/redis_client"
 	"carrot_chat/pkg/utils/jwtutil"
 	"fmt"
 	"net/http"
@@ -21,7 +21,7 @@ func NewChatServer(cfg *config.Config) (*ChatServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	natsClient, err := natsClient.NewNatsClient(cfg.NatsUrl)
+	natsClient, err := nats_client.NewNatsClient(cfg.NatsUrl)
 	if err != nil {
 		return nil, err
 	}

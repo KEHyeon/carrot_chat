@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/nats-io/nats.go"
 	"time"
 )
 
@@ -23,5 +24,6 @@ func NewConfig() *Config {
 		RedisPassword:       "",
 		RedisDB:             0,
 		Port:                8081,
+		NatsUrl:             nats.DefaultURL,
 	}
 }
